@@ -1,0 +1,11 @@
+# Ignore object files
+*.o
+
+# Ignore executable files
+*.exe
+
+# Ignore SDL2 folder
+SDL2/
+
+# Ignore SDL2.dll file
+SDL2.dll
