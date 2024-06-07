@@ -173,23 +173,16 @@ void editor_save_to_file(const Editor *editor, const char *file_path) {
   fclose(f);
 }
 
-void editor_load_from_file(Editor *editor, const char *file_path) {
+void editor_load_from_file(Editor *editor, FILE *file) {
   assert(editor->lines == NULL &&
          "You can only load files into an empty editor");
 
   editor_create_first_new_line(editor);
 
-  FILE *f = fopen(file_path, "r");
-  if (f == NULL) {
-    fprintf(stderr, "ERROR: could not open file '%s': %s\n", file_path,
-            strerror(errno));
-    exit(1);
-  }
-
   static char chunk[640 * 1024];
 
-  while (!feof(f)) {
-    size_t n = fread(chunk, 1, sizeof(chunk), f);
+  while (!feof(file)) {
+    size_t n = fread(chunk, 1, sizeof(chunk), file);
 
     String_View chunk_sv = {.data = chunk, .count = n};
 
@@ -198,10 +191,10 @@ void editor_load_from_file(Editor *editor, const char *file_path) {
       String_View chunk_line = {0};
       Line *line = &editor->lines[editor->size - 1];
       if (sv_try_chop_by_delim(&chunk_sv, '\n', &chunk_line)) {
-        line_append_text_sized(line, chunk_line.data,  chunk_line.count);
+        line_append_text_sized(line, chunk_line.data, chunk_line.count);
         editor_insert_new_line(editor);
       } else {
-        
+
         line_append_text_sized(line, chunk_sv.data, chunk_sv.count);
         chunk_sv = SV_NULL;
       }
@@ -209,6 +202,4 @@ void editor_load_from_file(Editor *editor, const char *file_path) {
   }
 
   editor->cursor_row = 0;
-
-  fclose(f);
 }
