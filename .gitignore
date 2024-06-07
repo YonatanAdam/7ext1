@@ -4,6 +4,9 @@
 # Ignore executable files
 *.exe
 
+# Ignore C++ files
+*.cpp
+
 # Ignore SDL2 folder
 SDL2/
 
