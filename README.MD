@@ -4,5 +4,5 @@
 
 ```console
 $ make
-$ ./text_editor main.c
+$ ./text_editor  main.c
 ```
