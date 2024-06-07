@@ -1,1 +1,12 @@
-*.cpp linguist-detectable=false
+# Specify file patterns and exclude them from language detection
+*.o linguist-vendored
+*.dll linguist-vendored
+*.bmp linguist-vendored
+*.png linguist-vendored
+
+# Exclude specific files from language detection
+Makefile linguist-vendored
+
+# Exclude specific directories from language detection
+SDL2/ linguist-vendored
+
