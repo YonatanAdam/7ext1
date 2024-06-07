@@ -1,4 +1,6 @@
 #include "SDL2/include/SDL2/SDL.h"
+#include "SDL2/include/SDL2/SDL_timer.h"
+#include "SDL2/include/SDL2/SDL_video.h"
 #include "la.h"
 #include <math.h>
 #include <stdbool.h>
@@ -11,6 +13,11 @@
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "./stb_image.h"
+
+#define SCREEN_WIDTH 800
+#define SCREEN_HEIGHT 600
+#define FPS 60
+#define DELTA_TIME (1.0f / FPS)
 
 #define FONT_WIDTH 128
 #define FONT_HEIGHT 64
@@ -141,16 +148,29 @@ void render_text_sized(SDL_Renderer *renderer, Font *font, const char *text,
 }
 
 Editor editor = {0};
+Vec2f camera_pos = {0};
+Vec2f camera_vel = {0};
 
 #define UNHEX(color)                                                           \
   (color) >> (8 * 0) & 0xFF, (color) >> (8 * 1) & 0xFF,                        \
       (color) >> (8 * 2) & 0xFF, (color) >> (8 * 3) & 0xFF
 
-void render_cursor(SDL_Renderer *renderer, const Font *font) {
+Vec2f window_size(SDL_Window *window) {
+  int w, h;
+  SDL_GetWindowSize(window, &w, &h);
+  return vec2f((float)w, (float)h);
+}
 
-  const Vec2f pos =
-      vec2f((float)editor.cursor_col * FONT_CHAR_WIDTH * FONT_SCALE,
-            (float)editor.cursor_row * FONT_CHAR_HEIGHT * FONT_SCALE);
+Vec2f camera_project_point(SDL_Window *window, Vec2f point) {
+  return vec2f_add(vec2f_sub(point, camera_pos),
+                   vec2f_mul(window_size(window), vec2fs(0.5f)));
+}
+void render_cursor(SDL_Renderer *renderer, SDL_Window *window,
+                   const Font *font) {
+
+  const Vec2f pos = camera_project_point(
+      window, vec2f((float)editor.cursor_col * FONT_CHAR_WIDTH * FONT_SCALE,
+                    (float)editor.cursor_row * FONT_CHAR_HEIGHT * FONT_SCALE));
 
   const SDL_Rect rect = {
       .x = (int)floorf(pos.x),
@@ -174,7 +194,6 @@ void usage(FILE *stream) { fprintf(stream, "Usage: te [FILE-PATH]\n"); }
 //
 // TODO: Save file
 // TODO: ncurses renderer
-// TODO: scrolling
 // TODO: Jump forward/backward by word
 // TODO: Delete a word
 // TODO: Blinking cursor
@@ -200,8 +219,8 @@ int main(int argc, char **argv) {
 
   scc(SDL_Init(SDL_INIT_VIDEO));
 
-  SDL_Window *window =
-      scp(SDL_CreateWindow("7ext1", 100, 100, 800, 600, SDL_WINDOW_RESIZABLE));
+  SDL_Window *window = scp(SDL_CreateWindow(
+      "7ext1", 100, 100, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_RESIZABLE));
 
   SDL_Renderer *renderer =
       scp(SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED));
@@ -220,6 +239,7 @@ int main(int argc, char **argv) {
 
   bool quit = false;
   while (!quit) {
+    const Uint32 start = SDL_GetTicks();
     SDL_Event event = {0};
     while (SDL_PollEvent(&event)) {
       switch (event.type) {
@@ -276,18 +296,34 @@ int main(int argc, char **argv) {
       }
     }
 
+    {
+      const Vec2f cursor_pos =
+          vec2f((float)editor.cursor_col * FONT_CHAR_WIDTH * FONT_SCALE,
+                (float)editor.cursor_row * FONT_CHAR_HEIGHT * FONT_SCALE);
+      camera_vel = vec2f_mul(vec2f_sub(cursor_pos, camera_pos),vec2fs(2.0f));
+      camera_pos =
+          vec2f_add(camera_pos, vec2f_mul(camera_vel, vec2fs(DELTA_TIME)));
+    }
+
     scc(SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0));
     scc(SDL_RenderClear(renderer));
 
     for (size_t row = 0; row < editor.size; ++row) {
-      const Line *line = &editor.lines[row];
-      render_text_sized(renderer, &font, line->chars, line->size,
-                        vec2f(0.0, row * FONT_CHAR_HEIGHT * FONT_SCALE),
+      const Line *line = editor.lines + row;
+      const Vec2f line_pos = camera_project_point(
+          window, vec2f(0.0f, (float)row * FONT_CHAR_HEIGHT * FONT_SCALE));
+      render_text_sized(renderer, &font, line->chars, line->size, line_pos,
                         0xFFFFFFFF, FONT_SCALE);
     }
-    render_cursor(renderer, &font);
+    render_cursor(renderer, window, &font);
 
     SDL_RenderPresent(renderer);
+
+    const Uint32 duration = SDL_GetTicks() - start;
+    const Uint32 delta_time_ms = 1000 / FPS;
+    if (duration < delta_time_ms) {
+      SDL_Delay(delta_time_ms - duration);
+    }
   }
 
   SDL_Quit();
