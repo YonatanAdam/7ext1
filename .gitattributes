@@ -1,10 +1,7 @@
-# Specify file patterns and exclude them from language detection
-*.o linguist-vendored
-*.dll linguist-vendored
-*.bmp linguist-vendored
-*.png linguist-vendored
-*.cpp linguist-vendored
+# Specify file patterns and their corresponding languages
+Makefile linguist-language=Makefile
 
-# Exclude specific directories from language detection
-SDL2/ linguist-vendored
+# Exclude C++ files from language detection
+*.cpp linguist-vendored
+*.h linguist-vendored
 
