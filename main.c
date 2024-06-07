@@ -169,11 +169,14 @@ void render_cursor(SDL_Renderer *renderer, const Font *font) {
   }
 }
 
-// TODO: Multiple lines
+//
 // TODO: Save/Load file
 // TODO: Jump forward/backward by word
 // TODO: Delete a word
 // TODO: Blinking cursor
+// TODO: Delete line
+// TODO: Split the line on Enter
+//
 
 int main(int argc, char **argv) {
 
@@ -213,6 +216,10 @@ int main(int argc, char **argv) {
         switch (event.key.keysym.sym) {
         case SDLK_BACKSPACE: {
           editor_backspace(&editor);
+        } break;
+
+        case SDLK_F2: {
+          editor_save_to_file(&editor, "output");
         } break;
 
         case SDLK_RETURN: {
