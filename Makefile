@@ -2,7 +2,7 @@ CC = gcc
 CFLAGS = -Wall -Wextra -std=c11 -pedantic -ggdb -I./SDL2/include
 LDFLAGS = -L./SDL2/lib -lSDL2 -lm
 
-SRC = main.c la.c
+SRC = main.c la.c editor.c
 OBJ = $(SRC:.c=.o)
 EXEC = text_editor
 
