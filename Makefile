@@ -1,10 +1,10 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -std=c11 -pedantic -ggdb -I./SDL2/include
-LDFLAGS = -L./SDL2/lib -lSDL2 -lm
+CFLAGS = -Wall -Wextra -std=c11 -pedantic -ggdb -I./SDL2/include -I./glew/include
+LDFLAGS = -L./SDL2/lib -L./glew/lib/Release/x64 -lSDL2 -lglew32 -lopengl32 -lm
 
-SRC = main.c la.c editor.c
+SRC = src/main.c src/la.c src/editor.c src/file.c src/gl_extra.c src/sdl_extra.c src/font.c
 OBJ = $(SRC:.c=.o)
-EXEC = text_editor
+EXEC = te
 
 .PHONY: all clean
 
