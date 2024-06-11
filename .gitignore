@@ -12,3 +12,9 @@ SDL2/
 
 # Ignore SDL2.dll file
 SDL2.dll
+
+# Ignore glew folder
+glew/
+
+# Ignore glew32.dll file
+glew32.dll
